@@ -8,47 +8,92 @@ A simple and efficient URL shortening service built with Django and Django REST 
 - Retrieve original URLs from shortened URLs
 - Track the number of times a shortened URL has been accessed
 - Create, retrieve, update, and delete shortened URLs
-
+- Use Redis as cache for improved performance
 
 ## Installation
 
 1. **Clone the repository:**
+
    ```bash
    git clone https://github.com/yourusername/urlshortener.git
    cd urlshortener
    ```
 
 2. **Create a virtual environment:**
+
    ```bash
    python -m venv myenv
    source myenv/bin/activate  # On Windows use `myenv\Scripts\activate`
    ```
 
 3. **Install dependencies:**
+
    ```bash
    pip install -r requirements.txt
    ```
 
-4. **Apply migrations:**
-   ```bash
-   python manage.py migrate
+4. **Configure environment variables:**
+   Create a `.env` file in the root of your project and add the necessary environment variables:
+
+   ```env
+   DATABASE_URL=postgres://user:password@host:port/dbname
+   DJANGO_SECRET_KEY=your_secret_key
+   REDIS_URL=redis://your_redis_host:your_redis_port/1
    ```
 
-5. **Create a superuser:**
+5. **Apply migrations:**
+
+   ```bash
+   python manage.py makemigrations && python manage.py migrate
+   ```
+
+6. **Create a superuser:**
+
    ```bash
    python manage.py createsuperuser
    ```
 
-6. **Run the development server:**
+7. **Run the development server:**
    ```bash
    python manage.py runserver
    ```
+
+## Database Configuration
+
+You can configure your project to use different databases by setting the `DATABASE_URL` environment variable in your `.env` file.
+
+### PostgreSQL
+
+To use PostgreSQL as your database, set the `DATABASE_URL` like this:
+
+```env
+DATABASE_URL=postgres://user:password@host:port/dbname
+```
+
+### SQLite
+
+To use SQLite as your database, set the `DATABASE_URL` like this:
+
+```env
+DATABASE_URL=sqlite:///db.sqlite3
+```
+
+But by default Django use SQLite...
+
+## Cache Configuration
+
+Redis is used as the cache for this project. Make sure to set the `REDIS_URL` environment variable in your `.env` file:
+
+```env
+REDIS_URL=redis://your_redis_host:your_redis_port/1
+```
 
 ## Usage
 
 ### Endpoints
 
 - **Create Short URL:**
+
   ```http
   POST /shorten/
   Content-Type: application/json
@@ -59,11 +104,13 @@ A simple and efficient URL shortening service built with Django and Django REST 
   ```
 
 - **Retrieve Original URL:**
+
   ```http
   GET /shorten/<short_url>/
   ```
 
 - **Update Short URL:**
+
   ```http
   PUT /shorten/<short_url>/
   Content-Type: application/json
@@ -74,6 +121,7 @@ A simple and efficient URL shortening service built with Django and Django REST 
   ```
 
 - **Delete Short URL:**
+
   ```http
   DELETE /shorten/<short_url>/
   ```
