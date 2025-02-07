@@ -23,11 +23,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-8*#$m821j!@hakh+v195*)7oj=+&a6zgi5=l8a8#_1tc$o*4-*"
+SECRET_KEY = os.environ.get(
+    "SECRET_KEY",
+    default="django-insecure-8*#$m821j!@hakh+v195*)7oj=+&a6zgi5=l8a8#_1tc$o*4-*",
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = "PRODUCTION" not in os.environ
-
+print(DEBUG, os.getenv("PRODUCTION"))
 ALLOWED_HOSTS = []
 
 EXTERNAL_ALLOWED_HOSTS: str = os.getenv("ALLOWED_HOSTS")
@@ -59,6 +62,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "whitenoise.runserver_nostatic",
     "rest_framework",
     "shortener",
 ]
@@ -93,7 +97,7 @@ TEMPLATES = [
 ]
 
 # Configuración de manejo de errores
-HANDLER404 = 'shortener.views.custom_404'
+HANDLER404 = "shortener.views.custom_404"
 
 WSGI_APPLICATION = "urlshortener.wsgi.application"
 
