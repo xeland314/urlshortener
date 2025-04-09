@@ -6,7 +6,7 @@ class ShortenerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Shortener
         fields = "__all__"
-
+        read_only_fields = ["short_url", "created_at", "updated_at", "times_followed"]
 
 class ShortenerSerializerCreator(serializers.Serializer):
     long_url = serializers.URLField(required=True)

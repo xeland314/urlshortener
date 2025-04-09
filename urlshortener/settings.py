@@ -80,6 +80,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "django_ratelimit.middleware.RatelimitMiddleware",
 ]
 
 ROOT_URLCONF = "urlshortener.urls"
@@ -102,6 +103,7 @@ TEMPLATES = [
 
 # Configuración de manejo de errores
 HANDLER404 = "shortener.views.custom_404"
+RATELIMIT_VIEW = "shortener.views.ratelimit_handler"
 
 WSGI_APPLICATION = "urlshortener.wsgi.application"
 
