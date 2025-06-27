@@ -3,10 +3,12 @@ from .views import (
     ShortenerListCreateView,
     ShortenerRetrieveUpdateDestroyView,
     redirect_view,
+    index_view,
 )
 
 
 urlpatterns = [
+    path("", index_view, name="home"),
     path("shorten/", ShortenerListCreateView.as_view(), name="shortener-list-create"),
     path(
         "shorten/<str:short_url>/",

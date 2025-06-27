@@ -54,9 +54,12 @@ class ShortenerListCreateView(generics.ListCreateAPIView, RateLimitExceptionAPIH
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         instance = serializer.save()
-        response_serializer = ShortenerSerializer(instance)
-        headers = self.get_success_headers(response_serializer.data)
-        return Response(response_serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        context = {
+            'short_url': instance.short_url,
+            'access_token': instance.access_token if instance.short_url.startswith("p") else None,
+            'request': request # Pass the request object to access build_absolute_uri
+        }
+        return render(request, 'shortener/shortened_result.html', context, status=status.HTTP_201_CREATED)
 
 
 @method_decorator(ratelimit(key="user_or_ip", rate="20/m"), name="dispatch")
@@ -106,3 +109,6 @@ def redirect_view(request, short_url: str):
     shortener.times_followed += 1
     shortener.save(update_fields=['times_followed'])
     return redirect(shortener.long_url)
+
+def index_view(request):
+    return render(request, 'shortener/index.html')
