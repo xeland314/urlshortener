@@ -6,6 +6,7 @@
 <div class="max-w-md mx-auto bg-white p-8 rounded-lg shadow-md mt-10">
     <h1 class="text-2xl font-bold text-center mb-6">Shorten Your URL</h1>
     <form hx-post="{% url 'shortener-list-create' %}" hx-target="#shortened-result" hx-swap="innerHTML" class="space-y-4">
+        {% csrf_token %}
         <input type="url" name="long_url" placeholder="Enter your long URL" required
                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
         
