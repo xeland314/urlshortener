@@ -6,7 +6,7 @@ from .models import PasswordProtectedShortener, PrivateShortener, Shortener
 class ShortenerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Shortener
-        fields = ["short_url", "long_url", "created", "updated", "times_followed"]
+        fields = ["short_url", "long_url", "created", "updated", "times_followed", "access_token"]
         read_only_fields = [
             "short_url",
             "created",
