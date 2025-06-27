@@ -102,8 +102,8 @@ TEMPLATES = [
 ]
 
 # Configuración de manejo de errores
-HANDLER404 = "shortener.views.custom_404"
-RATELIMIT_VIEW = "shortener.views.ratelimit_handler"
+HANDLER404 = "shortener.handlers.custom_404"
+RATELIMIT_VIEW = "shortener.handlers.ratelimit_handler"
 
 WSGI_APPLICATION = "urlshortener.wsgi.application"
 
