@@ -14,13 +14,15 @@ class ShortenerAdmin(admin.ModelAdmin):
         "long_url",
         "short_url",
         "user",
+        "expires_at",
+        "is_active",
     )
     search_fields = ("long_url", "short_url", "user__username")
-    list_filter = ("created", "times_followed", "user")
+    list_filter = ("created", "times_followed", "user", "is_active")
     date_hierarchy = "created"
     readonly_fields = ("created", "updated", "times_followed", "short_url")
     fieldsets = (
-        (None, {"fields": ("long_url", "short_url", "user")}),
+        (None, {"fields": ("long_url", "short_url", "user", "expires_at", "is_active")}),
         (
             "Read-Only Fields",
             {
@@ -54,9 +56,11 @@ class PrivateShortenerAdmin(admin.ModelAdmin):
         "short_url",
         "access_token",
         "user",
+        "expires_at",
+        "is_active",
     )
     search_fields = ("long_url", "short_url", "access_token", "user__username")
-    list_filter = ("created", "times_followed", "user")
+    list_filter = ("created", "times_followed", "user", "is_active")
     date_hierarchy = "created"
     readonly_fields = (
         "created",
@@ -66,7 +70,7 @@ class PrivateShortenerAdmin(admin.ModelAdmin):
         "access_token",
     )
     fieldsets = (
-        (None, {"fields": ("long_url", "user")}),
+        (None, {"fields": ("long_url", "user", "expires_at", "is_active")}),
         ("Private Link Details", {"fields": ("short_url", "access_token")}),
         (
             "Read-Only Fields",
@@ -104,6 +108,8 @@ class PasswordProtectedShortenerForm(ModelForm):
             "password",
             "short_url",
             "user",
+            "expires_at",
+            "is_active",
         )  # Include short_url if you want it editable in admin
 
     def save(self, commit=True):
@@ -126,13 +132,15 @@ class PasswordProtectedShortenerAdmin(admin.ModelAdmin):
         "short_url",
         "has_password",  # Custom display to indicate if a password is set
         "user",
+        "expires_at",
+        "is_active",
     )
     search_fields = ("long_url", "short_url", "user__username")
-    list_filter = ("created", "times_followed", "user")
+    list_filter = ("created", "times_followed", "user", "is_active")
     date_hierarchy = "created"
     readonly_fields = ("created", "updated", "times_followed", "short_url")
     fieldsets = (
-        (None, {"fields": ("long_url", "password", "user")}),
+        (None, {"fields": ("long_url", "password", "user", "expires_at", "is_active")}),
         ("Protected Link Details", {"fields": ("short_url",)}),
         (
             "Read-Only Fields",

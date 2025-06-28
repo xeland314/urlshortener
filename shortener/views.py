@@ -45,11 +45,12 @@ class ShortenerListCreateView(generics.ListCreateAPIView, RateLimitExceptionAPIH
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def get_queryset(self):
+        queryset = Shortener.objects.filter(is_active=True)
         if self.request.user.is_authenticated and self.request.user.is_staff:
-            return Shortener.objects.all()
+            return queryset
         elif self.request.user.is_authenticated:
-            return Shortener.objects.filter(user=self.request.user)
-        return Shortener.objects.filter(user__isnull=True) # Only show public URLs if not logged in
+            return queryset.filter(user=self.request.user)
+        return queryset.filter(user__isnull=True) # Only show public URLs if not logged in
 
     def get_serializer_class(self):
         if self.request.method == 'POST':
@@ -98,16 +99,17 @@ class ShortenerListCreateView(generics.ListCreateAPIView, RateLimitExceptionAPIH
 
 @method_decorator(ratelimit(key="user_or_ip", rate="20/m"), name="dispatch")
 class ShortenerRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView, RateLimitExceptionAPIHandler):
-    queryset = Shortener.objects.all()
+    queryset = Shortener.objects.filter(is_active=True)
     lookup_field = "short_url"
     permission_classes = [IsOwnerOrAdmin]
 
     def get_queryset(self):
+        queryset = Shortener.objects.filter(is_active=True)
         if self.request.user.is_authenticated and self.request.user.is_staff:
-            return Shortener.objects.all()
+            return queryset
         elif self.request.user.is_authenticated:
-            return Shortener.objects.filter(user=self.request.user)
-        return Shortener.objects.filter(user__isnull=True) # Only allow access to public URLs if not logged in
+            return queryset.filter(user=self.request.user)
+        return queryset.filter(user__isnull=True) # Only allow access to public URLs if not logged in
 
     def get_serializer_class(self):
         instance = self.get_object()
@@ -127,7 +129,7 @@ class ChangePasswordFormView(APIView):
     permission_classes = [IsOwnerOrAdmin]
 
     def get(self, request, short_url):
-        shortener = get_object_or_404(Shortener, short_url=short_url)
+        shortener = get_object_or_404(Shortener.objects.filter(is_active=True), short_url=short_url)
         self.check_object_permissions(request, shortener)
         shortener = add_shortener_type_properties(shortener) # Add properties
         return render(request, 'shortener/password_change_form.html', {'shortener': shortener})
@@ -136,7 +138,7 @@ class ChangePasswordView(APIView):
     permission_classes = [IsOwnerOrAdmin]
 
     def patch(self, request, short_url):
-        shortener = get_object_or_404(Shortener, short_url=short_url)
+        shortener = get_object_or_404(Shortener.objects.filter(is_active=True), short_url=short_url)
         self.check_object_permissions(request, shortener)
         password = request.data.get('password')
         if password:
@@ -150,7 +152,7 @@ class RegenerateTokenView(APIView):
     permission_classes = [IsOwnerOrAdmin]
 
     def post(self, request, short_url):
-        shortener = get_object_or_404(Shortener, short_url=short_url)
+        shortener = get_object_or_404(Shortener.objects.filter(is_active=True), short_url=short_url)
         self.check_object_permissions(request, shortener)
         shortener.access_token = uuid.uuid4()
         shortener.save()
@@ -161,7 +163,7 @@ class GetShortenerCardView(APIView):
     permission_classes = [IsOwnerOrAdmin]
 
     def get(self, request, short_url):
-        shortener = get_object_or_404(Shortener, short_url=short_url)
+        shortener = get_object_or_404(Shortener.objects.filter(is_active=True), short_url=short_url)
         self.check_object_permissions(request, shortener)
         shortener = add_shortener_type_properties(shortener) # Add properties
         return render(request, 'shortener/shortener_card.html', {'shortener': shortener})
@@ -174,6 +176,9 @@ class GetShortenerCardView(APIView):
 @ratelimit(key="user_or_ip", rate="30/m")
 def redirect_view(request, short_url: str):
     shortener = get_object_or_404(Shortener, short_url=short_url)
+
+    if not shortener.is_active:
+        return render(request, "404.html", status=status.HTTP_404_NOT_FOUND)
 
     if short_url.startswith("p") and len(short_url) == 8:
         token = request.GET.get("token")

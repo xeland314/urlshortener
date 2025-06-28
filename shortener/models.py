@@ -10,6 +10,8 @@ class Shortener(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
+    expires_at = models.DateTimeField(null=True, blank=True)
+    is_active = models.BooleanField(default=True)
     times_followed = models.PositiveIntegerField(default=0)
     long_url = models.URLField()
     short_url = models.CharField(max_length=15, unique=True, blank=True)
@@ -33,6 +35,11 @@ class Shortener(models.Model):
         if not self.short_url:
             self.short_url = create_shortened_url(self)
         super().save(*args, **kwargs)
+
+        # Schedule Celery task if expires_at is set
+        if self.expires_at:
+            from .tasks import expire_shortener_url
+            expire_shortener_url.apply_async((self.id,), eta=self.expires_at)
 
 
     def check_password(self, raw_password):
