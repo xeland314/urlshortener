@@ -1,3 +1,4 @@
+from django.contrib.auth.models import User
 import uuid
 from django.contrib.auth.hashers import check_password as django_check_password
 from django.db import models
@@ -6,6 +7,7 @@ from .utils import create_shortened_url
 
 
 class Shortener(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
     times_followed = models.PositiveIntegerField(default=0)

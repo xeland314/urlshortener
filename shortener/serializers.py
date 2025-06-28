@@ -56,8 +56,8 @@ class ShortenerSerializerCreator(serializers.Serializer):
 class PrivateShortenerSerializer(ShortenerSerializer):
     class Meta(ShortenerSerializer.Meta):
         model = PrivateShortener
-        fields = ["short_url", "created", "updated", "times_followed"]
-        read_only_fields = ["short_url", "created", "updated", "times_followed"]
+        fields = ["short_url", "created", "updated", "times_followed", "user"]
+        read_only_fields = ["short_url", "created", "updated", "times_followed", "user"]
 
 
 class PrivateShortenerSerializerCreator(ShortenerSerializerCreator):
@@ -76,12 +76,13 @@ class PrivateShortenerSerializerCreator(ShortenerSerializerCreator):
 class PasswordProtectedShortenerSerializer(ShortenerSerializer):
     class Meta(ShortenerSerializer.Meta):
         model = PasswordProtectedShortener
-        fields = ["short_url", "created", "updated", "times_followed"]
+        fields = ["short_url", "created", "updated", "times_followed", "user"]
         read_only_fields = [
             "short_url",
             "created",
             "updated",
             "times_followed",
+            "user",
         ]  # Don't expose the hash
 
 

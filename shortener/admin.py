@@ -13,13 +13,14 @@ class ShortenerAdmin(admin.ModelAdmin):
         "times_followed",
         "long_url",
         "short_url",
+        "user",
     )
-    search_fields = ("long_url", "short_url")
-    list_filter = ("created", "times_followed")
+    search_fields = ("long_url", "short_url", "user__username")
+    list_filter = ("created", "times_followed", "user")
     date_hierarchy = "created"
     readonly_fields = ("created", "updated", "times_followed", "short_url")
     fieldsets = (
-        (None, {"fields": ("long_url", "short_url")}),
+        (None, {"fields": ("long_url", "short_url", "user")}),
         (
             "Read-Only Fields",
             {
@@ -29,6 +30,17 @@ class ShortenerAdmin(admin.ModelAdmin):
         ),
     )
     ordering = ("-created",)
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        if request.user.is_superuser:
+            return qs
+        return qs.filter(user=request.user)
+
+    def save_model(self, request, obj, form, change):
+        if not obj.pk: # Only set user on creation
+            obj.user = request.user
+        super().save_model(request, obj, form, change)
 
 
 @admin.register(PrivateShortener)
@@ -41,9 +53,10 @@ class PrivateShortenerAdmin(admin.ModelAdmin):
         "long_url",
         "short_url",
         "access_token",
+        "user",
     )
-    search_fields = ("long_url", "short_url", "access_token")
-    list_filter = ("created", "times_followed")
+    search_fields = ("long_url", "short_url", "access_token", "user__username")
+    list_filter = ("created", "times_followed", "user")
     date_hierarchy = "created"
     readonly_fields = (
         "created",
@@ -53,7 +66,7 @@ class PrivateShortenerAdmin(admin.ModelAdmin):
         "access_token",
     )
     fieldsets = (
-        (None, {"fields": ("long_url",)}),
+        (None, {"fields": ("long_url", "user")}),
         ("Private Link Details", {"fields": ("short_url", "access_token")}),
         (
             "Read-Only Fields",
@@ -64,6 +77,17 @@ class PrivateShortenerAdmin(admin.ModelAdmin):
         ),
     )
     ordering = ("-created",)
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        if request.user.is_superuser:
+            return qs
+        return qs.filter(user=request.user)
+
+    def save_model(self, request, obj, form, change):
+        if not obj.pk: # Only set user on creation
+            obj.user = request.user
+        super().save_model(request, obj, form, change)
 
 
 class PasswordProtectedShortenerForm(ModelForm):
@@ -79,6 +103,7 @@ class PasswordProtectedShortenerForm(ModelForm):
             "long_url",
             "password",
             "short_url",
+            "user",
         )  # Include short_url if you want it editable in admin
 
     def save(self, commit=True):
@@ -100,13 +125,14 @@ class PasswordProtectedShortenerAdmin(admin.ModelAdmin):
         "long_url",
         "short_url",
         "has_password",  # Custom display to indicate if a password is set
+        "user",
     )
-    search_fields = ("long_url", "short_url")
-    list_filter = ("created", "times_followed")
+    search_fields = ("long_url", "short_url", "user__username")
+    list_filter = ("created", "times_followed", "user")
     date_hierarchy = "created"
     readonly_fields = ("created", "updated", "times_followed", "short_url")
     fieldsets = (
-        (None, {"fields": ("long_url", "password")}),
+        (None, {"fields": ("long_url", "password", "user")}),
         ("Protected Link Details", {"fields": ("short_url",)}),
         (
             "Read-Only Fields",
@@ -120,6 +146,8 @@ class PasswordProtectedShortenerAdmin(admin.ModelAdmin):
     form = PasswordProtectedShortenerForm
 
     def save_model(self, request, obj, form, change):
+        if not obj.pk: # Only set user on creation
+            obj.user = request.user
         if form.cleaned_data["password"]:
             obj.password = make_password(form.cleaned_data["password"])
         elif not change:  # If it's a new object and no password was set

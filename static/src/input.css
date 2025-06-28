@@ -1,1 +1,24 @@
 @import "tailwindcss";
+
+/* Custom styles for Django forms */
+.helptext {
+    @apply text-sm text-gray-500 mt-1;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="url"],
+textarea,
+select {
+    @apply w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500;
+}
+
+/* Styles for password validation lists */
+ul {
+    @apply list-none p-0 mt-2;
+}
+
+ul li {
+    @apply text-red-600 text-sm mb-1;
+}

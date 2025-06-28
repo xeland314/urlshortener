@@ -1,0 +1,30 @@
+<div id="shortener-{{ shortener.short_url }}" class="bg-white p-4 rounded-lg shadow-md mb-4">
+    <div class="flex flex-1 justify-between items-center mb-2">
+        <h3 class="text-lg font-semibold text-blue-600">/{{ shortener.short_url }}</h3>
+        <span class="text-sm text-gray-500">Clicks: {{ shortener.times_followed }}</span>
+    </div>
+    <p class="text-gray-700 break-all">Long URL: <a href="{{ shortener.long_url }}" target="_blank" class="text-blue-500 hover:underline">{{ shortener.long_url }}</a></p>
+    
+    {% if shortener.is_private_type %}
+        <p class="text-gray-600">Type: Private</p>
+        <p class="text-gray-600 break-all">Access Token: {{ shortener.access_token }}</p>
+        <button hx-post="{% url 'shortener-regenerate-token' short_url=shortener.short_url %}" hx-target="#shortener-{{ shortener.short_url }}" hx-swap="outerHTML" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                class="mt-2 px-3 py-1 bg-yellow-500 text-white rounded-md text-sm hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2">
+            Regenerate Token
+        </button>
+    {% elif shortener.is_password_protected_type %}
+        <p class="text-gray-600">Type: Password Protected</p>
+        <button hx-get="{% url 'shortener-change-password-form' short_url=shortener.short_url %}" hx-target="#shortener-{{ shortener.short_url }}" hx-swap="outerHTML"
+                class="mt-2 px-3 py-1 bg-purple-500 text-white rounded-md text-sm hover:bg-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2">
+            Change Password
+        </button>
+    {% else %}
+        <p class="text-gray-600">Type: Public</p>
+    {% endif %}
+
+    <button hx-delete="{% url 'shortener-detail-update-destroy' short_url=shortener.short_url %}" hx-confirm="Are you sure you want to delete this shortener?"
+            hx-target="#shortener-{{ shortener.short_url }}" hx-swap="delete" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+            class="mt-2 ml-2 px-3 py-1 bg-red-500 text-white rounded-md text-sm hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
+        Delete
+    </button>
+</div>
