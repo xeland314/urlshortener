@@ -2,134 +2,134 @@
 
 A simple and efficient URL shortening service built with Django and Django REST Framework. This service allows users to shorten long URLs, track the number of times they are accessed, and manage their URLs through a RESTful API.
 
+## Technologies Used
+
+- **Backend:** Django, Django REST Framework
+- **Database:** PostgreSQL (recommended), SQLite (default)
+- **Cache/Broker:** Redis
+- **Asynchronous Tasks:** Celery
+- **Frontend:** HTML, Tailwind CSS, HTMX
+
 ## Features
 
 - Shorten long URLs
 - Retrieve original URLs from shortened URLs
 - Track the number of times a shortened URL has been accessed
-- Create, retrieve, update, and delete shortened URLs
+- Create, retrieve, update, and delete shortened URLs via API
+- **User Authentication:** Register, login, and logout functionality.
+- **User-Specific URLs:** Shortened URLs can be associated with authenticated users.
+- **Permissions:** Only the owner or a superuser can modify/delete a user's URL.
+- **Interactive Dashboard:** Authenticated users can manage their URLs (delete, change password, regenerate token) directly from the homepage using HTMX.
+- **URL Expiration:**
+    - Anonymous URLs expire and are deleted after a set time.
+    - User-owned URLs expire and are deactivated (marked inactive) after a set time.
+- **Background Tasks:** Uses Celery for asynchronous operations like URL expiration.
+- **Customizable Forms:** Styled Django forms with Tailwind CSS.
 - Use Redis as cache for improved performance
 
 ## Installation
 
-1. **Clone the repository:**
+1.  **Clone the repository:**
 
-   ```bash
-   git clone https://github.com/yourusername/urlshortener.git
-   cd urlshortener
-   ```
+    ```bash
+    git clone https://github.com/yourusername/urlshortener.git
+    cd urlshortener
+    ```
 
-2. **Create a virtual environment:**
+2.  **Create a virtual environment and install dependencies (using `uv`):**
 
-   ```bash
-   python -m venv myenv
-   source myenv/bin/activate  # On Windows use `myenv\Scripts\activate`
-   ```
+    ```bash
+    uv venv
+    source .venv/bin/activate # On Windows use `.venv\Scripts\activate`
+    uv pip install -r requirements.txt
+    ```
 
-3. **Install dependencies:**
+3.  **Configure environment variables:**
+    Create a `.env` file in the root of your project and add the necessary environment variables:
 
-   ```bash
-   pip install -r requirements.txt
-   ```
+    ```env
+    DATABASE_URL=sqlite:///db.sqlite3
+    SECRET_KEY=your_django_secret_key
+    REDIS_LOCATION=redis://127.0.0.1:6379/0 # For Celery broker and result backend, and Django cache
+    ```
 
-4. **Configure environment variables:**
-   Create a `.env` file in the root of your project and add the necessary environment variables:
+4.  **Apply migrations:**
 
-   ```env
-   DATABASE_URL=postgres://user:password@host:port/dbname
-   DJANGO_SECRET_KEY=your_secret_key
-   REDIS_URL=redis://your_redis_host:your_redis_port/1
-   ```
+    ```bash
+    python manage.py makemigrations && python manage.py migrate
+    ```
 
-5. **Apply migrations:**
+5.  **Create a superuser (optional, but recommended for admin access):**
 
-   ```bash
-   python manage.py makemigrations && python manage.py migrate
-   ```
+    ```bash
+    python manage.py createsuperuser
+    ```
 
-6. **Create a superuser:**
+6.  **Install Node.js dependencies for frontend:**
 
-   ```bash
-   python manage.py createsuperuser
-   ```
+    ```bash
+    npm install
+    ```
 
-7. **Run the development server:**
-   ```bash
-   python manage.py runserver
-   ```
+7.  **Build Tailwind CSS:**
 
-## Database Configuration
+    ```bash
+    npm run build:css
+    ```
+    For development, you can use `npm run watch:css` to automatically recompile CSS on changes.
 
-You can configure your project to use different databases by setting the `DATABASE_URL` environment variable in your `.env` file.
+## Running the Application
 
-### PostgreSQL
+To run the full application, you need to start the Django development server, a Redis server, and Celery workers.
 
-To use PostgreSQL as your database, set the `DATABASE_URL` like this:
+1.  **Start Redis Server:**
+    Ensure you have a Redis server running. If you have Docker, you can run:
+    ```bash
+    docker run -d -p 6379:6379 redis/redis-stack-server:latest
+    ```
 
-```env
-DATABASE_URL=postgres://user:password@host:port/dbname
-```
+2.  **Start Celery Worker:**
+    In a new terminal, from the project root:
+    ```bash
+    celery -A urlshortener worker -l info
+    ```
 
-### SQLite
+3.  **Start Celery Beat (for scheduled tasks like URL expiration):**
+    In another new terminal, from the project root:
+    ```bash
+    celery -A urlshortener beat -l info
+    ```
 
-To use SQLite as your database, set the `DATABASE_URL` like this:
+4.  **Run the Django Development Server:**
+    In your main terminal:
+    ```bash
+    python manage.py runserver
+    ```
 
-```env
-DATABASE_URL=sqlite:///db.sqlite3
-```
-
-But by default Django use SQLite...
-
-## Cache Configuration
-
-Redis is used as the cache for this project. Make sure to set the `REDIS_URL` environment variable in your `.env` file:
-
-```env
-REDIS_URL=redis://your_redis_host:your_redis_port/1
-```
+Access the application at `http://127.0.0.1:8000/`.
 
 ## Usage
 
-### Endpoints
+-   **Homepage (`/`):** Serves as an interactive dashboard. Authenticated users can manage their URLs. Unauthenticated users can shorten URLs.
+-   **Register (`/register/`):** Create a new user account.
+-   **Login (`/login/`):** Log in to an existing account.
+-   **Logout (`/logout/`):** Log out of the current session.
+-   **Admin Panel (`/admin/`):** Access the Django administration interface. Users must have `is_staff=True` to access. Superusers see all URLs; staff users see only their own.
 
-- **Create Short URL:**
+### API Endpoints (for direct API interaction or advanced usage)
 
-  ```http
-  POST /shorten/
-  Content-Type: application/json
+-   **Create Short URL:** `POST /shorten/`
+-   **List Short URLs:** `GET /shorten/`
+-   **Retrieve/Update/Delete Short URL:** `GET/PUT/PATCH/DELETE /shorten/<short_url>/`
+-   **Redirect to Original URL:** `GET /<short_url>/`
 
-  {
-    "long_url": "https://www.example.com/some/long/url"
-  }
-  ```
+## Documentation
 
-- **Retrieve Original URL:**
+For more detailed information on specific components and configurations, refer to the `docs/` directory:
 
-  ```http
-  GET /shorten/<short_url>/
-  ```
-
-- **Update Short URL:**
-
-  ```http
-  PUT /shorten/<short_url>/
-  Content-Type: application/json
-
-  {
-    "long_url": "https://www.example.com/some/updated/url"
-  }
-  ```
-
-- **Delete Short URL:**
-
-  ```http
-  DELETE /shorten/<short_url>/
-  ```
-
-- **Redirect to Original URL:**
-  ```http
-  GET /<short_url>/
-  ```
+-   [`docs/frontend.md`](docs/frontend.md): Frontend setup with Tailwind CSS and HTMX.
+-   [`docs/celery.md`](docs/celery.md): Celery configuration and task management.
+-   [`docs/deployment.md`](docs/deployment.md): General deployment considerations.
 
 ## Contributing
 
@@ -137,7 +137,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE](LICENSE) file for details.
 
 ## Acknowledgements
 
